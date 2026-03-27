@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 @main
 struct AgentOrganizerApp: App {
@@ -6,5 +7,6 @@ struct AgentOrganizerApp: App {
         WindowGroup {
             MainTabView()
         }
+        .modelContainer(for: [TaskItem.self, CalendarItem.self])
     }
 }
