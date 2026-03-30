@@ -11,6 +11,7 @@ struct OrganizedDraft: Decodable {
     let location: String?
     let notes: String?
     let explanation: String?
+    let confidence: String?
 }
 
 enum DraftKind: String, Decodable {
@@ -108,14 +109,21 @@ struct AIOrganizerService {
         - location: string or null
         - notes: string or null
         - explanation: short string
+        - confidence: "low", "medium", or "high"
 
         Rules:
         - Prefer "task" when scheduling information is missing or ambiguous.
         - Use "event" only when the message clearly implies something scheduled or happening at a time.
+        - Treat phrases like "tomorrow", "tonight", "next Monday", weekdays, dates, clock times, and durations as scheduling clues.
+        - Treat phrases like "all day", "full day", or date-only commitments as all-day events when appropriate.
+        - If the user gives a start time and a duration like "for 2 hours", compute the endDate from that duration.
+        - If the user gives a date but no time for an event, prefer allDay = true unless the message strongly implies a timed event.
+        - If the message is ambiguous between task and event, choose "task" and set confidence to "low" or "medium".
         - For tasks, keep startDate and endDate null.
         - For events, provide startDate. If duration is missing, set endDate to one hour after startDate.
         - Use null for unknown optional fields.
         - Keep title concise and action-oriented.
+        - Keep explanation brief and user-facing.
         - Do not include markdown or extra text outside the JSON object.
         """
     }

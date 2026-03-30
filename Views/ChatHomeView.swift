@@ -210,7 +210,17 @@ struct ChatHomeView: View {
             do {
                 let draft = try await organizerService.organize(message: message, apiKey: apiKey)
                 await MainActor.run {
-                    pendingDraft = PendingDraft(from: draft, originalMessage: message)
+                    if draft.kind == .event, draft.confidence == "low" {
+                        createTask(
+                            title: draft.title.isEmpty ? message : draft.title,
+                            note: "AI was not confident enough to schedule this, so it was saved as a task.",
+                            dueDate: parseDate(draft.dueDate),
+                            priority: draft.priority ?? "medium",
+                            notes: draft.notes
+                        )
+                    } else {
+                        pendingDraft = PendingDraft(from: draft, originalMessage: message)
+                    }
                     isSending = false
                 }
             } catch {
@@ -324,6 +334,7 @@ private struct PendingDraft: Identifiable {
     var location: String
     var notes: String
     var explanation: String
+    var confidence: String
 
     init(from draft: OrganizedDraft, originalMessage: String) {
         let parser = ISO8601DateFormatter()
@@ -356,6 +367,7 @@ private struct PendingDraft: Identifiable {
         self.location = draft.location ?? ""
         self.notes = draft.notes ?? ""
         self.explanation = draft.explanation ?? ""
+        self.confidence = draft.confidence ?? "medium"
     }
 }
 
@@ -434,6 +446,10 @@ private struct DraftConfirmationView: View {
             Section("AI Reasoning") {
                 TextField("Explanation", text: $draft.explanation, axis: .vertical)
                     .lineLimit(2...4)
+
+                Text("Confidence: \(draft.confidence.capitalized)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
         .navigationTitle("Review Draft")
