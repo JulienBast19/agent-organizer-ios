@@ -44,7 +44,7 @@ struct ChatHomeView: View {
                 .glassEffect(.regular.tint(.blue).interactive(), in: .circle)
             }
             .padding()
-            .glassEffect(.regular, in: .rect(cornerRadius: .containerConcentric))
+            .glassEffect(.regular, in: .rect(cornerRadius: 24))
         }
         .navigationTitle("Chat")
     }
