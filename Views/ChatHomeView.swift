@@ -231,12 +231,12 @@ struct ChatHomeView: View {
             createTask(
                 title: draft.title,
                 note: draft.explanation.isEmpty ? "Saved as a task." : draft.explanation,
-                dueDate: parseDate(draft.dueDate),
+                dueDate: draft.hasDueDate ? draft.dueDate : nil,
                 priority: draft.priority,
                 notes: draft.notes.isEmpty ? nil : draft.notes
             )
         case .event:
-            guard let startDate = parseDate(draft.startDate) else {
+            guard let startDate = draft.startDate else {
                 createTask(
                     title: draft.originalMessage,
                     note: "This draft could not be scheduled, so it was saved as a task."
@@ -244,7 +244,7 @@ struct ChatHomeView: View {
                 return
             }
 
-            let endDate = parseDate(draft.endDate) ?? Calendar.current.date(byAdding: .hour, value: 1, to: startDate) ?? startDate.addingTimeInterval(3600)
+            let endDate = draft.endDate ?? Calendar.current.date(byAdding: .hour, value: 1, to: startDate) ?? startDate.addingTimeInterval(3600)
             let event = CalendarItem(
                 title: draft.title,
                 startDate: startDate,
@@ -316,22 +316,42 @@ private struct PendingDraft: Identifiable {
     var kind: DraftKind
     var title: String
     var priority: String
-    var dueDate: String
-    var startDate: String
-    var endDate: String
+    var hasDueDate: Bool
+    var dueDate: Date
+    var startDate: Date?
+    var endDate: Date?
     var allDay: Bool
     var location: String
     var notes: String
     var explanation: String
 
     init(from draft: OrganizedDraft, originalMessage: String) {
+        let parser = ISO8601DateFormatter()
+        parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        func parse(_ value: String?) -> Date? {
+            guard let value, !value.isEmpty else { return nil }
+
+            if let date = parser.date(from: value) {
+                return date
+            }
+
+            parser.formatOptions = [.withInternetDateTime]
+            return parser.date(from: value)
+        }
+
+        let parsedDueDate = parse(draft.dueDate)
+        let parsedStartDate = parse(draft.startDate)
+        let parsedEndDate = parse(draft.endDate)
+
         self.originalMessage = originalMessage
         self.kind = draft.kind
         self.title = draft.title
         self.priority = draft.priority ?? "medium"
-        self.dueDate = draft.dueDate ?? ""
-        self.startDate = draft.startDate ?? ""
-        self.endDate = draft.endDate ?? ""
+        self.hasDueDate = parsedDueDate != nil
+        self.dueDate = parsedDueDate ?? Date()
+        self.startDate = parsedStartDate
+        self.endDate = parsedEndDate
         self.allDay = draft.allDay ?? false
         self.location = draft.location ?? ""
         self.notes = draft.notes ?? ""
@@ -366,21 +386,41 @@ private struct DraftConfirmationView: View {
                         Text("High").tag("high")
                     }
 
-                    TextField("Due Date (ISO 8601)", text: $draft.dueDate)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+                    Toggle("Has Due Date", isOn: $draft.hasDueDate)
+
+                    if draft.hasDueDate {
+                        DatePicker(
+                            "Due Date",
+                            selection: $draft.dueDate,
+                            displayedComponents: [.date, .hourAndMinute]
+                        )
+                    }
                 }
             } else {
                 Section("Event Details") {
                     Toggle("All Day", isOn: $draft.allDay)
 
-                    TextField("Start (ISO 8601)", text: $draft.startDate)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+                    DatePicker(
+                        "Start",
+                        selection: Binding(
+                            get: { draft.startDate ?? Date() },
+                            set: { draft.startDate = $0 }
+                        ),
+                        displayedComponents: draft.allDay ? [.date] : [.date, .hourAndMinute]
+                    )
 
-                    TextField("End (ISO 8601)", text: $draft.endDate)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+                    DatePicker(
+                        "End",
+                        selection: Binding(
+                            get: {
+                                draft.endDate
+                                ?? draft.startDate
+                                ?? Date()
+                            },
+                            set: { draft.endDate = $0 }
+                        ),
+                        displayedComponents: draft.allDay ? [.date] : [.date, .hourAndMinute]
+                    )
 
                     TextField("Location", text: $draft.location)
                 }
@@ -408,6 +448,37 @@ private struct DraftConfirmationView: View {
                     onConfirm(draft)
                 }
                 .disabled(draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
+        .onChange(of: draft.kind) {
+            if draft.kind == .event {
+                if draft.startDate == nil {
+                    draft.startDate = Date()
+                }
+
+                if draft.endDate == nil, let startDate = draft.startDate {
+                    draft.endDate = Calendar.current.date(byAdding: .hour, value: 1, to: startDate)
+                }
+            }
+        }
+        .onChange(of: draft.startDate) {
+            guard let startDate = draft.startDate else { return }
+
+            if let endDate = draft.endDate, endDate < startDate {
+                draft.endDate = startDate
+            }
+        }
+        .onChange(of: draft.allDay) {
+            guard draft.kind == .event else { return }
+            guard let startDate = draft.startDate else { return }
+
+            if draft.allDay {
+                let calendar = Calendar.current
+                draft.startDate = calendar.startOfDay(for: startDate)
+
+                if let endDate = draft.endDate {
+                    draft.endDate = calendar.startOfDay(for: max(endDate, startDate))
+                }
             }
         }
     }
