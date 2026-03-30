@@ -28,6 +28,7 @@ struct ChatHomeView: View {
                     ForEach(sortedMessages) { entry in
                         ChatBubble(
                             message: entry,
+                            linkedPreview: linkedPreview(for: entry),
                             onOpenLinkedItem: {
                                 openLinkedItem(for: entry)
                             }
@@ -335,6 +336,55 @@ struct ChatHomeView: View {
         }
     }
 
+    private func linkedPreview(for message: ChatMessage) -> LinkedPreview? {
+        guard let linkedKind = message.linkedKind, let linkedRecordID = message.linkedRecordID else {
+            return nil
+        }
+
+        switch linkedKind {
+        case "task":
+            guard let task = tasks.first(where: { $0.recordID == linkedRecordID }) else {
+                return nil
+            }
+
+            let subtitle: String
+            if task.completed {
+                subtitle = "Completed"
+            } else if let dueDate = task.dueDate {
+                subtitle = "Due \(dueDate.formatted(date: .abbreviated, time: .shortened))"
+            } else {
+                subtitle = "No due date"
+            }
+
+            return LinkedPreview(
+                title: task.title,
+                subtitle: subtitle,
+                iconName: "checklist",
+                accent: .green
+            )
+        case "event":
+            guard let event = events.first(where: { $0.recordID == linkedRecordID }) else {
+                return nil
+            }
+
+            let subtitle: String
+            if event.allDay {
+                subtitle = event.startDate.formatted(date: .abbreviated, time: .omitted)
+            } else {
+                subtitle = "\(event.startDate.formatted(date: .abbreviated, time: .shortened))"
+            }
+
+            return LinkedPreview(
+                title: event.title,
+                subtitle: subtitle,
+                iconName: "calendar",
+                accent: .orange
+            )
+        default:
+            return nil
+        }
+    }
+
     private func parseDate(_ value: String?) -> Date? {
         guard let value, !value.isEmpty else { return nil }
 
@@ -563,6 +613,7 @@ private struct DraftConfirmationView: View {
 
 private struct ChatBubble: View {
     let message: ChatMessage
+    let linkedPreview: LinkedPreview?
     let onOpenLinkedItem: () -> Void
 
     var body: some View {
@@ -580,11 +631,38 @@ private struct ChatBubble: View {
                     .foregroundStyle(.secondary)
             }
 
-            if let linkedTitle = message.linkedTitle, message.linkedKind != nil, message.linkedRecordID != nil {
-                Button("Open \(linkedTitle)") {
-                    onOpenLinkedItem()
+            Text(message.createdAt.formatted(date: .omitted, time: .shortened))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+
+            if let linkedPreview {
+                Button(action: onOpenLinkedItem) {
+                    HStack(spacing: 10) {
+                        Image(systemName: linkedPreview.iconName)
+                            .foregroundStyle(linkedPreview.accent)
+                            .frame(width: 24)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(linkedPreview.title)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.primary)
+
+                            Text(linkedPreview.subtitle)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(10)
+                    .background(Color(.tertiarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
-                .font(.caption)
+                .buttonStyle(.plain)
             }
         }
         .frame(maxWidth: .infinity, alignment: isUser ? .trailing : .leading)
@@ -597,6 +675,13 @@ private struct ChatBubble: View {
     private var bubbleColor: Color {
         isUser ? .blue.opacity(0.16) : Color(.secondarySystemBackground)
     }
+}
+
+private struct LinkedPreview {
+    let title: String
+    let subtitle: String
+    let iconName: String
+    let accent: Color
 }
 
 struct ChatHomeView_Previews: PreviewProvider {
