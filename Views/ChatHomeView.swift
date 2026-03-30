@@ -11,6 +11,7 @@ struct ChatHomeView: View {
     @State private var apiKeyDraft = ""
     @State private var isShowingSettings = false
     @State private var isSending = false
+    @State private var pendingDraft: PendingDraft?
     @State private var entries: [ChatEntry] = [
         ChatEntry(
             text: "Capture something, then choose whether chat should use AI auto-organization or save directly as a task or event.",
@@ -108,6 +109,27 @@ struct ChatHomeView: View {
                 }
             }
         }
+        .sheet(item: $pendingDraft) { draft in
+            NavigationStack {
+                DraftConfirmationView(
+                    draft: draft,
+                    onCancel: {
+                        pendingDraft = nil
+                        entries.append(
+                            ChatEntry(
+                                text: "Draft discarded.",
+                                role: .assistant,
+                                status: "Auto"
+                            )
+                        )
+                    },
+                    onConfirm: { confirmedDraft in
+                        save(draft: confirmedDraft)
+                        pendingDraft = nil
+                    }
+                )
+            }
+        }
     }
 
     private var trimmedMessage: String {
@@ -185,12 +207,11 @@ struct ChatHomeView: View {
         isSending = true
 
         Task {
-            defer { isSending = false }
-
             do {
                 let draft = try await organizerService.organize(message: message, apiKey: apiKey)
                 await MainActor.run {
-                    apply(draft: draft, originalMessage: message)
+                    pendingDraft = PendingDraft(from: draft, originalMessage: message)
+                    isSending = false
                 }
             } catch {
                 await MainActor.run {
@@ -198,30 +219,27 @@ struct ChatHomeView: View {
                         title: message,
                         note: "AI parsing failed, so this was saved as a task instead."
                     )
+                    isSending = false
                 }
             }
         }
     }
 
-    private func apply(draft: OrganizedDraft, originalMessage: String) {
+    private func save(draft: PendingDraft) {
         switch draft.kind {
         case .task:
-            let dueDate = parseDate(draft.dueDate)
-            let priority = draft.priority ?? "medium"
-            let note = draft.explanation ?? "Saved as a task."
-
             createTask(
                 title: draft.title,
-                note: note,
-                dueDate: dueDate,
-                priority: priority,
-                notes: draft.notes
+                note: draft.explanation.isEmpty ? "Saved as a task." : draft.explanation,
+                dueDate: parseDate(draft.dueDate),
+                priority: draft.priority,
+                notes: draft.notes.isEmpty ? nil : draft.notes
             )
         case .event:
             guard let startDate = parseDate(draft.startDate) else {
                 createTask(
-                    title: originalMessage,
-                    note: "AI could not confidently schedule this, so it was saved as a task."
+                    title: draft.originalMessage,
+                    note: "This draft could not be scheduled, so it was saved as a task."
                 )
                 return
             }
@@ -231,15 +249,15 @@ struct ChatHomeView: View {
                 title: draft.title,
                 startDate: startDate,
                 endDate: endDate,
-                allDay: draft.allDay ?? false,
-                notes: draft.notes,
-                location: draft.location
+                allDay: draft.allDay,
+                notes: draft.notes.isEmpty ? nil : draft.notes,
+                location: draft.location.isEmpty ? nil : draft.location
             )
             modelContext.insert(event)
 
             entries.append(
                 ChatEntry(
-                    text: draft.explanation ?? "Saved as an event.",
+                    text: draft.explanation.isEmpty ? "Saved as an event." : draft.explanation,
                     role: .assistant,
                     status: "Calendar"
                 )
@@ -288,6 +306,109 @@ private enum OutputType: String, CaseIterable, Identifiable {
             return "Write a task..."
         case .event:
             return "Write an event..."
+        }
+    }
+}
+
+private struct PendingDraft: Identifiable {
+    let id = UUID()
+    let originalMessage: String
+    var kind: DraftKind
+    var title: String
+    var priority: String
+    var dueDate: String
+    var startDate: String
+    var endDate: String
+    var allDay: Bool
+    var location: String
+    var notes: String
+    var explanation: String
+
+    init(from draft: OrganizedDraft, originalMessage: String) {
+        self.originalMessage = originalMessage
+        self.kind = draft.kind
+        self.title = draft.title
+        self.priority = draft.priority ?? "medium"
+        self.dueDate = draft.dueDate ?? ""
+        self.startDate = draft.startDate ?? ""
+        self.endDate = draft.endDate ?? ""
+        self.allDay = draft.allDay ?? false
+        self.location = draft.location ?? ""
+        self.notes = draft.notes ?? ""
+        self.explanation = draft.explanation ?? ""
+    }
+}
+
+private struct DraftConfirmationView: View {
+    @State var draft: PendingDraft
+    let onCancel: () -> Void
+    let onConfirm: (PendingDraft) -> Void
+
+    var body: some View {
+        Form {
+            Section("Type") {
+                Picker("Kind", selection: $draft.kind) {
+                    Text("Task").tag(DraftKind.task)
+                    Text("Event").tag(DraftKind.event)
+                }
+                .pickerStyle(.segmented)
+            }
+
+            Section("Title") {
+                TextField("Title", text: $draft.title)
+            }
+
+            if draft.kind == .task {
+                Section("Task Details") {
+                    Picker("Priority", selection: $draft.priority) {
+                        Text("Low").tag("low")
+                        Text("Medium").tag("medium")
+                        Text("High").tag("high")
+                    }
+
+                    TextField("Due Date (ISO 8601)", text: $draft.dueDate)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                }
+            } else {
+                Section("Event Details") {
+                    Toggle("All Day", isOn: $draft.allDay)
+
+                    TextField("Start (ISO 8601)", text: $draft.startDate)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+
+                    TextField("End (ISO 8601)", text: $draft.endDate)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+
+                    TextField("Location", text: $draft.location)
+                }
+            }
+
+            Section("Notes") {
+                TextField("Notes", text: $draft.notes, axis: .vertical)
+                    .lineLimit(3...6)
+            }
+
+            Section("AI Reasoning") {
+                TextField("Explanation", text: $draft.explanation, axis: .vertical)
+                    .lineLimit(2...4)
+            }
+        }
+        .navigationTitle("Review Draft")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Cancel", action: onCancel)
+            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Save") {
+                    onConfirm(draft)
+                }
+                .disabled(draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
         }
     }
 }
