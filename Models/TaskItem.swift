@@ -3,6 +3,7 @@ import SwiftData
 
 @Model
 class TaskItem {
+    var recordID: String
     var title: String
     var dueDate: Date?
     var priority: String
@@ -11,6 +12,7 @@ class TaskItem {
     var notificationID: String
 
     init(
+        recordID: String = UUID().uuidString,
         title: String,
         dueDate: Date? = nil,
         priority: String = "medium",
@@ -18,6 +20,7 @@ class TaskItem {
         notes: String? = nil,
         notificationID: String = UUID().uuidString
     ) {
+        self.recordID = recordID
         self.title = title
         self.dueDate = dueDate
         self.priority = priority

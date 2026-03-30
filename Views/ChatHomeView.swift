@@ -6,19 +6,18 @@ struct ChatHomeView: View {
 
     @AppStorage("openAIAPIKey") private var openAIAPIKey = ""
 
+    @Query private var messages: [ChatMessage]
+    @Query private var tasks: [TaskItem]
+    @Query private var events: [CalendarItem]
+
     @State private var outputType: OutputType = .auto
     @State private var message = ""
     @State private var apiKeyDraft = ""
     @State private var isShowingSettings = false
     @State private var isSending = false
     @State private var pendingDraft: PendingDraft?
-    @State private var entries: [ChatEntry] = [
-        ChatEntry(
-            text: "Capture something, then choose whether chat should use AI auto-organization or save directly as a task or event.",
-            role: .assistant,
-            status: nil
-        )
-    ]
+    @State private var selectedTask: TaskItem?
+    @State private var selectedEvent: CalendarItem?
 
     private let organizerService = AIOrganizerService()
 
@@ -26,8 +25,13 @@ struct ChatHomeView: View {
         VStack(spacing: 0) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 12) {
-                    ForEach(entries) { entry in
-                        ChatBubble(entry: entry)
+                    ForEach(sortedMessages) { entry in
+                        ChatBubble(
+                            message: entry,
+                            onOpenLinkedItem: {
+                                openLinkedItem(for: entry)
+                            }
+                        )
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -79,35 +83,9 @@ struct ChatHomeView: View {
                 }
             }
         }
+        .onAppear(perform: ensureWelcomeMessage)
         .sheet(isPresented: $isShowingSettings) {
-            NavigationStack {
-                Form {
-                    Section("OpenAI") {
-                        SecureField("API key", text: $apiKeyDraft)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-
-                        Text("Stored locally on this device and used for Auto mode.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .navigationTitle("AI Settings")
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Cancel") {
-                            isShowingSettings = false
-                        }
-                    }
-
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Save") {
-                            openAIAPIKey = apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-                            isShowingSettings = false
-                        }
-                    }
-                }
-            }
+            settingsSheet
         }
         .sheet(item: $pendingDraft) { draft in
             NavigationStack {
@@ -115,13 +93,7 @@ struct ChatHomeView: View {
                     draft: draft,
                     onCancel: {
                         pendingDraft = nil
-                        entries.append(
-                            ChatEntry(
-                                text: "Draft discarded.",
-                                role: .assistant,
-                                status: "Auto"
-                            )
-                        )
+                        appendAssistantMessage(text: "Draft discarded.", status: "Auto")
                     },
                     onConfirm: { confirmedDraft in
                         save(draft: confirmedDraft)
@@ -130,17 +102,79 @@ struct ChatHomeView: View {
                 )
             }
         }
+        .sheet(item: $selectedTask) { task in
+            NavigationStack {
+                TaskDetailView(task: task)
+            }
+        }
+        .sheet(item: $selectedEvent) { event in
+            NavigationStack {
+                CalendarDetailView(event: event)
+            }
+        }
+    }
+
+    private var settingsSheet: some View {
+        NavigationStack {
+            Form {
+                Section("OpenAI") {
+                    SecureField("API key", text: $apiKeyDraft)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+
+                    Text("Stored locally on this device and used for Auto mode.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("AI Settings")
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        isShowingSettings = false
+                    }
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Save") {
+                        openAIAPIKey = apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                        isShowingSettings = false
+                    }
+                }
+            }
+        }
+    }
+
+    private var sortedMessages: [ChatMessage] {
+        messages.sorted { $0.createdAt < $1.createdAt }
     }
 
     private var trimmedMessage: String {
         message.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private func ensureWelcomeMessage() {
+        guard messages.isEmpty else { return }
+
+        modelContext.insert(
+            ChatMessage(
+                text: "Capture something, then choose whether chat should use AI auto-organization or save directly as a task or event.",
+                role: ChatRole.assistant.rawValue
+            )
+        )
+    }
+
     private func sendMessage() {
         let trimmedMessage = trimmedMessage
         guard !trimmedMessage.isEmpty else { return }
 
-        entries.append(ChatEntry(text: trimmedMessage, role: .user, status: outputType.label))
+        modelContext.insert(
+            ChatMessage(
+                text: trimmedMessage,
+                role: ChatRole.user.rawValue,
+                status: outputType.label
+            )
+        )
         message = ""
 
         switch outputType {
@@ -170,12 +204,12 @@ struct ChatHomeView: View {
         modelContext.insert(task)
         TaskNotificationManager.shared.syncNotification(for: task)
 
-        entries.append(
-            ChatEntry(
-                text: note,
-                role: .assistant,
-                status: "Tasks"
-            )
+        appendAssistantMessage(
+            text: note,
+            status: "Tasks",
+            linkedKind: "task",
+            linkedRecordID: task.recordID,
+            linkedTitle: task.title
         )
     }
 
@@ -185,12 +219,12 @@ struct ChatHomeView: View {
         let event = CalendarItem(title: title, startDate: startDate, endDate: endDate)
         modelContext.insert(event)
 
-        entries.append(
-            ChatEntry(
-                text: "Saved as an event for \(startDate.formatted(date: .omitted, time: .shortened)).",
-                role: .assistant,
-                status: "Calendar"
-            )
+        appendAssistantMessage(
+            text: "Saved as an event for \(startDate.formatted(date: .omitted, time: .shortened)).",
+            status: "Calendar",
+            linkedKind: "event",
+            linkedRecordID: event.recordID,
+            linkedTitle: event.title
         )
     }
 
@@ -265,13 +299,39 @@ struct ChatHomeView: View {
             )
             modelContext.insert(event)
 
-            entries.append(
-                ChatEntry(
-                    text: draft.explanation.isEmpty ? "Saved as an event." : draft.explanation,
-                    role: .assistant,
-                    status: "Calendar"
-                )
+            appendAssistantMessage(
+                text: draft.explanation.isEmpty ? "Saved as an event." : draft.explanation,
+                status: "Calendar",
+                linkedKind: "event",
+                linkedRecordID: event.recordID,
+                linkedTitle: event.title
             )
+        }
+    }
+
+    private func appendAssistantMessage(text: String, status: String? = nil, linkedKind: String? = nil, linkedRecordID: String? = nil, linkedTitle: String? = nil) {
+        modelContext.insert(
+            ChatMessage(
+                text: text,
+                role: ChatRole.assistant.rawValue,
+                status: status,
+                linkedKind: linkedKind,
+                linkedRecordID: linkedRecordID,
+                linkedTitle: linkedTitle
+            )
+        )
+    }
+
+    private func openLinkedItem(for message: ChatMessage) {
+        guard let linkedKind = message.linkedKind, let linkedRecordID = message.linkedRecordID else { return }
+
+        switch linkedKind {
+        case "task":
+            selectedTask = tasks.first(where: { $0.recordID == linkedRecordID })
+        case "event":
+            selectedEvent = events.first(where: { $0.recordID == linkedRecordID })
+        default:
+            break
         }
     }
 
@@ -288,6 +348,11 @@ struct ChatHomeView: View {
         formatter.formatOptions = [.withInternetDateTime]
         return formatter.date(from: value)
     }
+}
+
+private enum ChatRole: String {
+    case user
+    case assistant
 }
 
 private enum OutputType: String, CaseIterable, Identifiable {
@@ -424,11 +489,7 @@ private struct DraftConfirmationView: View {
                     DatePicker(
                         "End",
                         selection: Binding(
-                            get: {
-                                draft.endDate
-                                ?? draft.startDate
-                                ?? Date()
-                            },
+                            get: { draft.endDate ?? draft.startDate ?? Date() },
                             set: { draft.endDate = $0 }
                         ),
                         displayedComponents: draft.allDay ? [.date] : [.date, .hourAndMinute]
@@ -500,46 +561,41 @@ private struct DraftConfirmationView: View {
     }
 }
 
-private struct ChatEntry: Identifiable {
-    enum Role {
-        case user
-        case assistant
-    }
-
-    let id = UUID()
-    let text: String
-    let role: Role
-    let status: String?
-}
-
 private struct ChatBubble: View {
-    let entry: ChatEntry
+    let message: ChatMessage
+    let onOpenLinkedItem: () -> Void
 
     var body: some View {
-        VStack(alignment: entry.role == .user ? .trailing : .leading, spacing: 6) {
-            Text(entry.text)
+        VStack(alignment: isUser ? .trailing : .leading, spacing: 6) {
+            Text(message.text)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
-                .frame(maxWidth: .infinity, alignment: entry.role == .user ? .trailing : .leading)
+                .frame(maxWidth: .infinity, alignment: isUser ? .trailing : .leading)
                 .background(bubbleColor)
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
 
-            if let status = entry.status {
+            if let status = message.status {
                 Text(status)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            if let linkedTitle = message.linkedTitle, message.linkedKind != nil, message.linkedRecordID != nil {
+                Button("Open \(linkedTitle)") {
+                    onOpenLinkedItem()
+                }
+                .font(.caption)
+            }
         }
-        .frame(maxWidth: .infinity, alignment: entry.role == .user ? .trailing : .leading)
+        .frame(maxWidth: .infinity, alignment: isUser ? .trailing : .leading)
+    }
+
+    private var isUser: Bool {
+        message.role == ChatRole.user.rawValue
     }
 
     private var bubbleColor: Color {
-        switch entry.role {
-        case .user:
-            return .blue.opacity(0.16)
-        case .assistant:
-            return Color(.secondarySystemBackground)
-        }
+        isUser ? .blue.opacity(0.16) : Color(.secondarySystemBackground)
     }
 }
 

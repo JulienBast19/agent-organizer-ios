@@ -3,14 +3,16 @@ import SwiftData
 
 @Model
 class CalendarItem {
+    var recordID: String
     var title: String
     var startDate: Date
     var endDate: Date
     var allDay: Bool
     var notes: String?
     var location: String?
-    
-    init(title: String, startDate: Date = Date(), endDate: Date = Date(), allDay: Bool = false, notes: String? = nil, location: String? = nil) {
+
+    init(recordID: String = UUID().uuidString, title: String, startDate: Date = Date(), endDate: Date = Date(), allDay: Bool = false, notes: String? = nil, location: String? = nil) {
+        self.recordID = recordID
         self.title = title
         self.startDate = startDate
         self.endDate = endDate
