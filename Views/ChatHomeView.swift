@@ -4,10 +4,11 @@ import SwiftData
 struct ChatHomeView: View {
     @Environment(\.modelContext) private var modelContext
 
+    @State private var outputType: OutputType = .task
     @State private var message = ""
     @State private var entries: [ChatEntry] = [
         ChatEntry(
-            text: "Start capturing reminders. For now, every message becomes a task.",
+            text: "Capture something, then choose whether chat should save it as a task or a calendar event.",
             role: .assistant,
             status: nil
         )
@@ -25,14 +26,23 @@ struct ChatHomeView: View {
                 .padding()
             }
 
-            HStack {
-                TextField("Write a reminder...", text: $message)
-                    .textFieldStyle(.plain)
-                    .padding(12)
-                    .background(Color(.systemBackground).opacity(0.1))
-                    .cornerRadius(8)
-                    .submitLabel(.send)
-                    .onSubmit(sendMessage)
+            HStack(alignment: .bottom, spacing: 12) {
+                VStack(spacing: 10) {
+                    Picker("Save As", selection: $outputType) {
+                        ForEach(OutputType.allCases) { type in
+                            Text(type.label).tag(type)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    TextField(outputType.placeholder, text: $message)
+                        .textFieldStyle(.plain)
+                        .padding(12)
+                        .background(Color(.systemBackground).opacity(0.1))
+                        .cornerRadius(8)
+                        .submitLabel(.send)
+                        .onSubmit(sendMessage)
+                }
 
                 Button(action: sendMessage) {
                     Image(systemName: "paperplane.fill")
@@ -57,21 +67,74 @@ struct ChatHomeView: View {
         let trimmedMessage = trimmedMessage
         guard !trimmedMessage.isEmpty else { return }
 
-        entries.append(ChatEntry(text: trimmedMessage, role: .user, status: nil))
+        entries.append(ChatEntry(text: trimmedMessage, role: .user, status: outputType.label))
 
-        let task = TaskItem(title: trimmedMessage)
-        modelContext.insert(task)
-        TaskNotificationManager.shared.syncNotification(for: task)
+        switch outputType {
+        case .task:
+            let task = TaskItem(title: trimmedMessage)
+            modelContext.insert(task)
+            TaskNotificationManager.shared.syncNotification(for: task)
 
-        entries.append(
-            ChatEntry(
-                text: "Saved as a task.",
-                role: .assistant,
-                status: "Tasks"
+            entries.append(
+                ChatEntry(
+                    text: "Saved as a task.",
+                    role: .assistant,
+                    status: "Tasks"
+                )
             )
-        )
+        case .event:
+            let startDate = defaultEventStartDate()
+            let endDate = Calendar.current.date(byAdding: .hour, value: 1, to: startDate) ?? startDate.addingTimeInterval(3600)
+            let event = CalendarItem(title: trimmedMessage, startDate: startDate, endDate: endDate)
+            modelContext.insert(event)
+
+            entries.append(
+                ChatEntry(
+                    text: "Saved as an event for \(startDate.formatted(date: .omitted, time: .shortened)).",
+                    role: .assistant,
+                    status: "Calendar"
+                )
+            )
+        }
 
         message = ""
+    }
+
+    private func defaultEventStartDate() -> Date {
+        let calendar = Calendar.current
+        let now = Date()
+        let nextHour = calendar.nextDate(
+            after: now,
+            matching: DateComponents(minute: 0),
+            matchingPolicy: .nextTime
+        )
+
+        return nextHour ?? now.addingTimeInterval(3600)
+    }
+}
+
+private enum OutputType: String, CaseIterable, Identifiable {
+    case task
+    case event
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .task:
+            return "Task"
+        case .event:
+            return "Event"
+        }
+    }
+
+    var placeholder: String {
+        switch self {
+        case .task:
+            return "Write a task..."
+        case .event:
+            return "Write an event..."
+        }
     }
 }
 
