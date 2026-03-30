@@ -47,6 +47,7 @@ struct TaskDetailView: View {
 
             Section {
                 Button("Delete Task", role: .destructive) {
+                    TaskNotificationManager.shared.removeNotification(for: task)
                     modelContext.delete(task)
                     dismiss()
                 }
@@ -54,5 +55,17 @@ struct TaskDetailView: View {
         }
         .navigationTitle("Task Details")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            TaskNotificationManager.shared.syncNotification(for: task)
+        }
+        .onChange(of: task.title) {
+            TaskNotificationManager.shared.syncNotification(for: task)
+        }
+        .onChange(of: task.dueDate) {
+            TaskNotificationManager.shared.syncNotification(for: task)
+        }
+        .onChange(of: task.completed) {
+            TaskNotificationManager.shared.syncNotification(for: task)
+        }
     }
 }

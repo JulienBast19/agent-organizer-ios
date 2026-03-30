@@ -110,17 +110,22 @@ struct TasksView: View {
         let title = trimmedNewTaskTitle
         guard !title.isEmpty else { return }
 
-        modelContext.insert(TaskItem(title: title))
+        let task = TaskItem(title: title)
+        modelContext.insert(task)
+        TaskNotificationManager.shared.syncNotification(for: task)
         newTaskTitle = ""
     }
 
     private func toggleCompletion(for task: TaskItem) {
         task.completed.toggle()
+        TaskNotificationManager.shared.syncNotification(for: task)
     }
 
     private func deleteTasks(at offsets: IndexSet, from sectionTasks: [TaskItem]) {
         for index in offsets {
-            modelContext.delete(sectionTasks[index])
+            let task = sectionTasks[index]
+            TaskNotificationManager.shared.removeNotification(for: task)
+            modelContext.delete(task)
         }
     }
 

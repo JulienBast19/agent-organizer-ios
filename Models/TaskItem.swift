@@ -8,13 +8,22 @@ class TaskItem {
     var priority: String
     var completed: Bool
     var notes: String?
+    var notificationID: String
 
-    init(title: String, dueDate: Date? = nil, priority: String = "medium", completed: Bool = false, notes: String? = nil) {
+    init(
+        title: String,
+        dueDate: Date? = nil,
+        priority: String = "medium",
+        completed: Bool = false,
+        notes: String? = nil,
+        notificationID: String = UUID().uuidString
+    ) {
         self.title = title
         self.dueDate = dueDate
         self.priority = priority
         self.completed = completed
         self.notes = notes
+        self.notificationID = notificationID
     }
 }
 
