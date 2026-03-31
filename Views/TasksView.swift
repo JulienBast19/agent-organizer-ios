@@ -11,14 +11,27 @@ struct TasksView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                addTaskSection
+            ZStack {
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.96, green: 0.98, blue: 1.0),
+                        Color(red: 0.99, green: 0.98, blue: 0.95)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
-                taskSection("Today", tasks: todayTasks)
-                taskSection("Upcoming", tasks: upcomingTasks)
-                taskSection("Someday", tasks: somedayTasks)
+                List {
+                    addTaskSection
+
+                    taskSection("Today", tasks: todayTasks)
+                    taskSection("Upcoming", tasks: upcomingTasks)
+                    taskSection("Someday", tasks: somedayTasks)
+                }
+                .scrollContentBackground(.hidden)
+                .listStyle(.insetGrouped)
             }
-            .listStyle(.insetGrouped)
             .navigationTitle("Tasks")
         }
     }
@@ -42,7 +55,7 @@ struct TasksView: View {
 
     @ViewBuilder
     private func taskSection(_ title: String, tasks: [TaskItem]) -> some View {
-        Section(title) {
+        Section {
             if tasks.isEmpty {
                 Text(emptyStateText(for: title))
                     .foregroundStyle(.secondary)
@@ -57,6 +70,18 @@ struct TasksView: View {
                 .onDelete { offsets in
                     deleteTasks(at: offsets, from: tasks)
                 }
+            }
+        } header: {
+            HStack {
+                Text(title)
+                Spacer()
+                Text("\(tasks.count)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.white.opacity(0.8))
+                    .clipShape(Capsule())
             }
         }
     }
@@ -169,11 +194,19 @@ struct TaskRow: View {
 
             Spacer(minLength: 12)
 
-            RoundedRectangle(cornerRadius: 4)
-                .fill(priorityColor)
-                .frame(width: 10, height: 28)
+            VStack(alignment: .trailing, spacing: 6) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(priorityColor)
+                    .frame(width: 10, height: 28)
+
+                if let dueDate = task.dueDate, dueDate < Date(), !task.completed {
+                    Text("Overdue")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.red)
+                }
+            }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
     }
 
     private var priorityColor: Color {

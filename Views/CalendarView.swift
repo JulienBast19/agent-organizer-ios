@@ -9,18 +9,34 @@ struct CalendarView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                DatePicker("Select Date", selection: $selectedDate, displayedComponents: [.date])
-                    .datePickerStyle(.graphical)
-                    .padding()
+            ZStack {
+                LinearGradient(
+                    colors: [
+                        Color(red: 1.0, green: 0.97, blue: 0.94),
+                        Color(red: 0.96, green: 0.98, blue: 1.0)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
-                List {
-                    addEventSection
+                VStack(spacing: 0) {
+                    DatePicker("Select Date", selection: $selectedDate, displayedComponents: [.date])
+                        .datePickerStyle(.graphical)
+                        .padding()
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .padding(.horizontal)
+                        .padding(.top, 8)
 
-                    eventSection("Selected Day", events: eventsForSelectedDate, emptyText: "No events on this day.")
-                    eventSection("Upcoming", events: upcomingEvents, emptyText: "No upcoming events.")
+                    List {
+                        addEventSection
+
+                        eventSection("Selected Day", events: eventsForSelectedDate, emptyText: "No events on this day.")
+                        eventSection("Upcoming", events: upcomingEvents, emptyText: "No upcoming events.")
+                    }
+                    .scrollContentBackground(.hidden)
+                    .listStyle(.insetGrouped)
                 }
-                .listStyle(.insetGrouped)
             }
             .navigationTitle("Calendar")
         }
@@ -45,7 +61,7 @@ struct CalendarView: View {
 
     @ViewBuilder
     private func eventSection(_ title: String, events: [CalendarItem], emptyText: String) -> some View {
-        Section(title) {
+        Section {
             if events.isEmpty {
                 Text(emptyText)
                     .foregroundStyle(.secondary)
@@ -58,6 +74,18 @@ struct CalendarView: View {
                 .onDelete { offsets in
                     deleteEvents(at: offsets, from: events)
                 }
+            }
+        } header: {
+            HStack {
+                Text(title)
+                Spacer()
+                Text("\(events.count)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.white.opacity(0.8))
+                    .clipShape(Capsule())
             }
         }
     }
@@ -115,20 +143,29 @@ private struct EventRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(event.title)
-                .font(.headline)
+            HStack(alignment: .top) {
+                Circle()
+                    .fill(event.allDay ? .blue : .orange)
+                    .frame(width: 10, height: 10)
+                    .padding(.top, 6)
 
-            Text(timeText)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(event.title)
+                        .font(.headline)
 
-            if let location = event.location, !location.isEmpty {
-                Text(location)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    Text(timeText)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    if let location = event.location, !location.isEmpty {
+                        Text(location)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
     }
 
     private var timeText: String {
