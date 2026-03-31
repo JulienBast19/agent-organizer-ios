@@ -4,12 +4,11 @@ import SwiftData
 struct ChatHomeView: View {
     @Environment(\.modelContext) private var modelContext
 
-    @AppStorage("openAIAPIKey") private var openAIAPIKey = ""
-
     @Query private var messages: [ChatMessage]
     @Query private var tasks: [TaskItem]
     @Query private var events: [CalendarItem]
 
+    @State private var openAIAPIKey = ""
     @State private var outputType: OutputType = .auto
     @State private var message = ""
     @State private var apiKeyDraft = ""
@@ -114,6 +113,7 @@ struct ChatHomeView: View {
             }
         }
         .onAppear(perform: ensureWelcomeMessage)
+        .onAppear(perform: loadAPIKey)
         .sheet(isPresented: $isShowingSettings) {
             settingsSheet
         }
@@ -165,12 +165,12 @@ struct ChatHomeView: View {
                     }
                 }
 
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Save") {
-                        openAIAPIKey = apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-                        isShowingSettings = false
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Save") {
+                            saveAPIKey()
+                            isShowingSettings = false
+                        }
                     }
-                }
             }
         }
     }
@@ -206,6 +206,30 @@ struct ChatHomeView: View {
                 role: ChatRole.assistant.rawValue
             )
         )
+    }
+
+    private func loadAPIKey() {
+        openAIAPIKey = KeychainService.loadOpenAIKey()
+    }
+
+    private func saveAPIKey() {
+        let trimmed = apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmed.isEmpty {
+            _ = KeychainService.deleteOpenAIKey()
+            openAIAPIKey = ""
+        } else if KeychainService.saveOpenAIKey(trimmed) {
+            openAIAPIKey = trimmed
+            notice = InlineNotice(
+                text: "OpenAI API key saved securely in Keychain.",
+                style: .success
+            )
+        } else {
+            notice = InlineNotice(
+                text: "The API key could not be saved securely.",
+                style: .error
+            )
+        }
     }
 
     private func sendMessage() {
@@ -834,11 +858,14 @@ private struct MessageDaySection: View {
 
 private struct InlineNotice: Identifiable {
     enum Style {
+        case success
         case warning
         case error
 
         var tint: Color {
             switch self {
+            case .success:
+                return .green
             case .warning:
                 return .orange
             case .error:
@@ -848,6 +875,8 @@ private struct InlineNotice: Identifiable {
 
         var iconName: String {
             switch self {
+            case .success:
+                return "checkmark.circle.fill"
             case .warning:
                 return "exclamationmark.triangle.fill"
             case .error:
