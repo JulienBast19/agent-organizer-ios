@@ -3,18 +3,30 @@ import SwiftData
 
 @Model
 class TaskItem {
+    var recordID: String
     var title: String
     var dueDate: Date?
     var priority: String
     var completed: Bool
     var notes: String?
+    var notificationID: String
 
-    init(title: String, dueDate: Date? = nil, priority: String = "medium", completed: Bool = false, notes: String? = nil) {
+    init(
+        recordID: String = UUID().uuidString,
+        title: String,
+        dueDate: Date? = nil,
+        priority: String = "medium",
+        completed: Bool = false,
+        notes: String? = nil,
+        notificationID: String = UUID().uuidString
+    ) {
+        self.recordID = recordID
         self.title = title
         self.dueDate = dueDate
         self.priority = priority
         self.completed = completed
         self.notes = notes
+        self.notificationID = notificationID
     }
 }
 

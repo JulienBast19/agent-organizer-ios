@@ -7,6 +7,6 @@ struct AgentOrganizerApp: App {
         WindowGroup {
             MainTabView()
         }
-        .modelContainer(for: [TaskItem.self, CalendarItem.self])
+        .modelContainer(for: [TaskItem.self, CalendarItem.self, ChatMessage.self])
     }
 }
