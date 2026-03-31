@@ -23,20 +23,33 @@ struct ChatHomeView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 12) {
-                    ForEach(sortedMessages) { entry in
-                        ChatBubble(
-                            message: entry,
-                            linkedPreview: linkedPreview(for: entry),
-                            onOpenLinkedItem: {
-                                openLinkedItem(for: entry)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 16) {
+                        ForEach(groupedMessages) { group in
+                            MessageDaySection(group: group)
+
+                            ForEach(group.messages) { entry in
+                                ChatBubble(
+                                    message: entry,
+                                    linkedPreview: linkedPreview(for: entry),
+                                    onOpenLinkedItem: {
+                                        openLinkedItem(for: entry)
+                                    }
+                                )
+                                .id(entry.persistentModelID)
                             }
-                        )
+                        }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
+                .onAppear {
+                    scrollToBottom(using: proxy)
+                }
+                .onChange(of: sortedMessages.count) {
+                    scrollToBottom(using: proxy)
+                }
             }
 
             HStack(alignment: .bottom, spacing: 12) {
@@ -148,6 +161,16 @@ struct ChatHomeView: View {
 
     private var sortedMessages: [ChatMessage] {
         messages.sorted { $0.createdAt < $1.createdAt }
+    }
+
+    private var groupedMessages: [MessageGroup] {
+        let grouped = Dictionary(grouping: sortedMessages) { message in
+            Calendar.current.startOfDay(for: message.createdAt)
+        }
+
+        return grouped.keys.sorted().map { day in
+            MessageGroup(day: day, messages: grouped[day] ?? [])
+        }
     }
 
     private var trimmedMessage: String {
@@ -360,7 +383,8 @@ struct ChatHomeView: View {
                 title: task.title,
                 subtitle: subtitle,
                 iconName: "checklist",
-                accent: .green
+                accent: .green,
+                badges: taskBadges(for: task)
             )
         case "event":
             guard let event = events.first(where: { $0.recordID == linkedRecordID }) else {
@@ -378,7 +402,8 @@ struct ChatHomeView: View {
                 title: event.title,
                 subtitle: subtitle,
                 iconName: "calendar",
-                accent: .orange
+                accent: .orange,
+                badges: eventBadges(for: event)
             )
         default:
             return nil
@@ -397,6 +422,42 @@ struct ChatHomeView: View {
 
         formatter.formatOptions = [.withInternetDateTime]
         return formatter.date(from: value)
+    }
+
+    private func taskBadges(for task: TaskItem) -> [LinkedBadgeItem] {
+        var badges: [LinkedBadgeItem] = []
+
+        if task.completed {
+            badges.append(.init(title: "Completed", tint: .green))
+        } else if let dueDate = task.dueDate, dueDate < Date() {
+            badges.append(.init(title: "Overdue", tint: .red))
+        } else if task.dueDate != nil {
+            badges.append(.init(title: "Upcoming", tint: .orange))
+        }
+
+        return badges
+    }
+
+    private func eventBadges(for event: CalendarItem) -> [LinkedBadgeItem] {
+        var badges: [LinkedBadgeItem] = []
+
+        if event.allDay {
+            badges.append(.init(title: "All Day", tint: .blue))
+        }
+
+        if event.startDate > Date() {
+            badges.append(.init(title: "Upcoming", tint: .orange))
+        }
+
+        return badges
+    }
+
+    private func scrollToBottom(using proxy: ScrollViewProxy) {
+        guard let lastMessage = sortedMessages.last else { return }
+
+        withAnimation(.easeOut(duration: 0.2)) {
+            proxy.scrollTo(lastMessage.persistentModelID, anchor: .bottom)
+        }
     }
 }
 
@@ -650,6 +711,14 @@ private struct ChatBubble: View {
                             Text(linkedPreview.subtitle)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
+
+                            if !linkedPreview.badges.isEmpty {
+                                HStack(spacing: 6) {
+                                    ForEach(linkedPreview.badges, id: \.title) { badge in
+                                        LinkedBadge(badge: badge)
+                                    }
+                                }
+                            }
                         }
 
                         Spacer()
@@ -682,6 +751,53 @@ private struct LinkedPreview {
     let subtitle: String
     let iconName: String
     let accent: Color
+    let badges: [LinkedBadgeItem]
+}
+
+private struct LinkedBadgeItem {
+    let title: String
+    let tint: Color
+}
+
+private struct LinkedBadge: View {
+    let badge: LinkedBadgeItem
+
+    var body: some View {
+        Text(badge.title)
+            .font(.caption2.weight(.medium))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(badge.tint.opacity(0.14))
+            .foregroundStyle(badge.tint)
+            .clipShape(Capsule())
+    }
+}
+
+private struct MessageGroup: Identifiable {
+    let day: Date
+    let messages: [ChatMessage]
+
+    var id: Date { day }
+}
+
+private struct MessageDaySection: View {
+    let group: MessageGroup
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Rectangle()
+                .fill(Color.secondary.opacity(0.2))
+                .frame(height: 1)
+
+            Text(group.day.formatted(.dateTime.weekday(.wide).month().day()))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Rectangle()
+                .fill(Color.secondary.opacity(0.2))
+                .frame(height: 1)
+        }
+    }
 }
 
 struct ChatHomeView_Previews: PreviewProvider {
