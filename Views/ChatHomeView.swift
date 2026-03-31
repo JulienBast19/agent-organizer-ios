@@ -18,11 +18,27 @@ struct ChatHomeView: View {
     @State private var pendingDraft: PendingDraft?
     @State private var selectedTask: TaskItem?
     @State private var selectedEvent: CalendarItem?
+    @State private var notice: InlineNotice?
 
     private let organizerService = AIOrganizerService()
 
     var body: some View {
         VStack(spacing: 0) {
+            if showsAutoOnboarding {
+                AutoModeBanner {
+                    apiKeyDraft = openAIAPIKey
+                    isShowingSettings = true
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+            }
+
+            if let notice {
+                InlineNoticeView(notice: notice)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+            }
+
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 16) {
@@ -177,6 +193,10 @@ struct ChatHomeView: View {
         message.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var showsAutoOnboarding: Bool {
+        outputType == .auto && openAIAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     private func ensureWelcomeMessage() {
         guard messages.isEmpty else { return }
 
@@ -255,6 +275,10 @@ struct ChatHomeView: View {
     private func runAutoOrganization(for message: String) {
         let apiKey = openAIAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !apiKey.isEmpty else {
+            notice = InlineNotice(
+                text: "Add an OpenAI API key to use Auto mode. The message was saved conservatively as a task.",
+                style: .warning
+            )
             createTask(
                 title: message,
                 note: "Auto mode needs an OpenAI API key. Saved as a task for now."
@@ -269,6 +293,10 @@ struct ChatHomeView: View {
                 let draft = try await organizerService.organize(message: message, apiKey: apiKey)
                 await MainActor.run {
                     if draft.kind == .event, draft.confidence == "low" {
+                        notice = InlineNotice(
+                            text: "AI marked this as low-confidence, so it was kept as a task instead of scheduling it automatically.",
+                            style: .warning
+                        )
                         createTask(
                             title: draft.title.isEmpty ? message : draft.title,
                             note: "AI was not confident enough to schedule this, so it was saved as a task.",
@@ -286,6 +314,10 @@ struct ChatHomeView: View {
                     createTask(
                         title: message,
                         note: "AI parsing failed, so this was saved as a task instead."
+                    )
+                    notice = InlineNotice(
+                        text: "The AI request failed, so the app fell back to a task. You can still review or edit it normally.",
+                        style: .error
                     )
                     isSending = false
                 }
@@ -797,6 +829,85 @@ private struct MessageDaySection: View {
                 .fill(Color.secondary.opacity(0.2))
                 .frame(height: 1)
         }
+    }
+}
+
+private struct InlineNotice: Identifiable {
+    enum Style {
+        case warning
+        case error
+
+        var tint: Color {
+            switch self {
+            case .warning:
+                return .orange
+            case .error:
+                return .red
+            }
+        }
+
+        var iconName: String {
+            switch self {
+            case .warning:
+                return "exclamationmark.triangle.fill"
+            case .error:
+                return "xmark.octagon.fill"
+            }
+        }
+    }
+
+    let id = UUID()
+    let text: String
+    let style: Style
+}
+
+private struct InlineNoticeView: View {
+    let notice: InlineNotice
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: notice.style.iconName)
+                .foregroundStyle(notice.style.tint)
+
+            Text(notice.text)
+                .font(.footnote)
+                .foregroundStyle(.primary)
+
+            Spacer()
+        }
+        .padding(12)
+        .background(notice.style.tint.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+}
+
+private struct AutoModeBanner: View {
+    let onConfigure: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "sparkles.rectangle.stack")
+                .font(.title3)
+                .foregroundStyle(.blue)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Auto mode needs an API key")
+                    .font(.subheadline.weight(.semibold))
+
+                Text("Add your OpenAI key to let chat classify and schedule messages automatically.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Button("Set Up", action: onConfigure)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+        }
+        .padding(14)
+        .background(Color.blue.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
 
