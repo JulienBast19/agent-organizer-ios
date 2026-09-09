@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ecuador Rural Land Explorer</title>
+<meta name="description" content="An interactive decision tool for choosing rural land in Ecuador: 28 researched listings scored on nature, value, safety, access and utilities.">
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <h1><span class="flagdot"></span> Ecuador Rural Land Explorer</h1>
+    <p>28 researched listings &middot; 2–5 ha target &middot; weighted for nature, value, safety, access, utilities</p>
+  </div>
+  <div class="dash">
+    <div class="stat" id="st-count"><div class="k">Properties found</div><div class="v">—</div><div class="s"></div></div>
+    <div class="stat" id="st-price"><div class="k">Median price</div><div class="v">—</div><div class="s"></div></div>
+    <div class="stat" id="st-ppha"><div class="k">Median $/ha</div><div class="v">—</div><div class="s"></div></div>
+    <div class="stat gold" id="st-value"><div class="k">Best value</div><div class="v">—</div><div class="s"></div></div>
+    <div class="stat accent" id="st-nature"><div class="k">Best nature score</div><div class="v">—</div><div class="s"></div></div>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ------------------------------------------------------ left: controls -->
+  <aside class="col col-left">
+
+    <section class="sec">
+      <h2>Scoring weights <button id="resetWeights" type="button">Reset</button></h2>
+      <div id="weights"></div>
+    </section>
+
+    <section class="sec">
+      <h2>Filters <button id="resetFilters" type="button">Reset all</button></h2>
+
+      <div class="field">
+        <label class="lab"><span>Price floor</span><span class="val" id="f-priceMin-v"></span></label>
+        <input type="range" id="f-priceMin" min="0" max="600000" step="5000" value="0">
+        <label class="lab"><span>Price ceiling</span><span class="val" id="f-priceMax-v"></span></label>
+        <input type="range" id="f-priceMax" min="0" max="600000" step="5000" value="600000">
+      </div>
+
+      <div class="field">
+        <label class="lab"><span>Minimum area</span><span class="val" id="f-areaMin-v"></span></label>
+        <input type="range" id="f-areaMin" min="0.5" max="10" step="0.1" value="0.5">
+        <label class="lab"><span>Maximum area</span><span class="val" id="f-areaMax-v"></span></label>
+        <input type="range" id="f-areaMax" min="0.5" max="10" step="0.1" value="10">
+      </div>
+
+      <div class="field">
+        <label class="lab"><span>Price per hectare cap</span><span class="val" id="f-pphaMax-v"></span></label>
+        <input type="range" id="f-pphaMax" min="5000" max="250000" step="2500" value="250000">
+      </div>
+
+      <div class="field">
+        <label class="lab"><span>Minimum overall score</span><span class="val" id="f-minOverall-v"></span></label>
+        <input type="range" id="f-minOverall" min="0" max="10" step="0.5" value="0">
+      </div>
+      <div class="field">
+        <label class="lab"><span>Minimum nature &amp; privacy</span><span class="val" id="f-minNature-v"></span></label>
+        <input type="range" id="f-minNature" min="0" max="10" step="1" value="0">
+      </div>
+      <div class="field">
+        <label class="lab"><span>Minimum safety</span><span class="val" id="f-minSafety-v"></span></label>
+        <input type="range" id="f-minSafety" min="0" max="10" step="1" value="0">
+      </div>
+      <div class="field">
+        <label class="lab"><span>Minimum accessibility</span><span class="val" id="f-minAccess-v"></span></label>
+        <input type="range" id="f-minAccess" min="0" max="10" step="1" value="0">
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Features</h2>
+
+      <div class="field">
+        <label class="lab"><span>Existing house</span></label>
+        <div class="seg" id="s-house">
+          <button data-v="any" class="on">Any</button>
+          <button data-v="yes">Yes</button>
+          <button data-v="no">No</button>
+          <button data-v="unknown">Unknown</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lab"><span>Electricity</span></label>
+        <div class="seg" id="s-elec">
+          <button data-v="any" class="on">Any</button>
+          <button data-v="yes">Yes</button>
+          <button data-v="no">No</button>
+          <button data-v="unknown">Unknown</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lab"><span>Water supply</span></label>
+        <div class="seg" id="s-water">
+          <button data-v="any" class="on">Any</button>
+          <button data-v="yes">Yes</button>
+          <button data-v="no">No</button>
+          <button data-v="unknown">Unknown</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lab"><span>River, stream or spring</span></label>
+        <div class="seg" id="s-wf">
+          <button data-v="any" class="on">Any</button>
+          <button data-v="yes">Must have</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lab"><span>Province</span></label>
+        <div class="chips" id="provinces"></div>
+      </div>
+
+      <div class="field">
+        <label class="check"><input type="checkbox" id="c-unpriced" checked>
+          Include listings with no published price</label>
+        <label class="check"><input type="checkbox" id="c-near" checked>
+          Include near matches (outside 2–5 ha)</label>
+      </div>
+    </section>
+  </aside>
+
+  <!-- ----------------------------------------------------------- centre: map -->
+  <main class="col-mid" style="position:relative">
+    <div id="map"></div>
+    <div class="maptools">
+      <div class="layerbox">
+        <button data-base="satellite" class="on">Satellite</button>
+        <button data-base="terrain">Terrain</button>
+        <button data-base="street">Dark</button>
+      </div>
+      <div class="legend">
+        <div class="lt">Overall score</div>
+        <div class="lrow"><span class="dot" style="background:#3fbf87"></span> 7.5 and above</div>
+        <div class="lrow"><span class="dot" style="background:#7cc35f"></span> 6.5 – 7.4</div>
+        <div class="lrow"><span class="dot" style="background:#d9c14f"></span> 5.5 – 6.4</div>
+        <div class="lrow"><span class="dot" style="background:#e0a24c"></span> 4.5 – 5.4</div>
+        <div class="lrow"><span class="dot" style="background:#e07a5f"></span> below 4.5</div>
+        <div class="note">Marker size also tracks the score. Dashed outline marks a near match.
+          Every pin is an approximate town or sector placement, not a parcel boundary.</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- -------------------------------------------------------- right: ranking -->
+  <aside class="col col-right">
+    <div class="rankhead">
+      <h2>Ranking</h2>
+      <span class="count" id="rankcount">—</span>
+    </div>
+    <div class="ranklist" id="ranklist"></div>
+    <div class="detail" id="detail"></div>
+  </aside>
+
+</div>
+
+<footer class="methodbar">
+  <h3>How to read this</h3>
+  <p><b>Every listing here is real and was publicly advertised.</b> Nothing was invented. The research
+  environment blocked direct page fetches, so listing detail was harvested from search-engine result
+  content rather than by opening each page. Treat every price as <b>last advertised</b>, not
+  <b>confirmed live today</b>, and re-verify with the agent before acting.</p>
+  <p><b>Coordinates are approximate.</b> No listing published exact coordinates, so each pin sits on
+  the named town, valley or sector. Use it to judge the region, never the parcel boundary.</p>
+  <p><b>Unknown means unknown.</b> Fields the listing did not state are marked Unknown rather than
+  filled with a guess. Where a dimension could not be scored, a neutral 5 stands in for the overall
+  figure and the card flags it. Observations the listing stated are tagged <b>verified</b>; anything
+  inferred from regional geography or statistics is tagged <b>assumed</b>.</p>
+  <p><b>Safety scores describe areas, not parcels.</b> Ecuador's homicide rate hit a record 50.9 per
+  100,000 in 2025 and then fell around 11% through 2026, but the violence is concentrated: Guayas,
+  Manabí, El Oro, Los Ríos and Esmeraldas account for roughly 88% of murders, while Azuay, Loja,
+  Imbabura, Cañar, Tungurahua and Napo sit far below the national average. A favourable provincial
+  statistic does not make any specific property safe.</p>
+  <p><b>Before southern Loja or Zamora-Chinchipe:</b> foreigners hold the same ownership rights as
+  Ecuadorians, but land within 50 km of the Peruvian or Colombian border sits in a military security
+  zone requiring special permission. Check that line first for anything near Yangana or further south.</p>
+</footer>
+
+<script src="assets/vendor/leaflet/leaflet.js"></script>
+<script src="data/properties.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
