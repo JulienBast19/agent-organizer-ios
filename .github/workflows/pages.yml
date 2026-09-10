@@ -5,21 +5,21 @@ on:
     branches: [main, claude/ecuador-land-explorer-dboau6]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  # Kept free of an `environment:` block on purpose. The github-pages
+  # environment does not exist until Pages is switched on, and a job's
+  # environment is resolved before its first step runs, so enabling Pages
+  # has to happen in a job that does not reference it.
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - name: Check out the site
         uses: actions/checkout@v4
@@ -31,9 +31,8 @@ jobs:
           cp -R assets _site/
           cp -R data _site/
           cp README.md _site/
-          ls -R _site | head -30
 
-      - name: Configure Pages (enables it if it is off)
+      - name: Configure Pages, enabling it if it is off
         uses: actions/configure-pages@v5
         with:
           enablement: true
@@ -43,6 +42,16 @@ jobs:
         with:
           path: _site
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
