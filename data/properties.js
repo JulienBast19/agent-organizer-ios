@@ -80,6 +80,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Yangana town centre. Parcel is 14 km along the highway from Vilcabamba; exact plot not published.",
   source: "https://realestate.instacasa.biz/100k-to-150k/",
   sourceName: "InstaCasa Real Estate (ref P0041)",
+  sourceKind: "index",
+  sourceNote:
+    "Agency index page, not a per-property page. Find ref P0041 in the $100K-$150K band.",
   description:
     "2.8 hectares described by the agent as an idyllic mature fruit forest with year-round " +
     "water running through it, 14 km by highway from downtown Vilcabamba. Sits in the upper " +
@@ -124,6 +127,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Sacapo sector, San Pedro valley. Exact plot not published.",
   source: "https://realestate.instacasa.biz/50k-100k/",
   sourceName: "InstaCasa Real Estate (ref P0045)",
+  sourceKind: "index",
+  sourceNote:
+    "Agency index page, not a per-property page. Find ref P0045 in the $50K-$100K band.",
   description:
     "3.8 hectares in the Sacapo sector of the San Pedro valley, marketed as 'where mountain " +
     "views meet stunning river' and described by the agent as unique, tranquil and very " +
@@ -169,6 +175,7 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Sacapo sector, San Pedro valley.",
   source: "https://huilcorealestate.com/properties/2-5-hectares-sacapo-area-vilcabamba/",
   sourceName: "Huilco Real Estate",
+  sourceKind: "listing",
   description:
     "2.5 hectare finca in the Sacapo area near Vilcabamba, listed with electricity, mountain " +
     "spring water and separate irrigation water already in place. The most service-ready " +
@@ -213,6 +220,7 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — within 10 minutes of Vilcabamba centre; sector not named in the listing summary.",
   source: "https://mandangorealestate.com/property/5-hectare-property-in-vilcabamba-just-10-minutes-from-downtown/",
   sourceName: "Mandango Real Estate",
+  sourceKind: "listing",
   description:
     "5 hectares split by the road: 2 hectares above it, semi-flat with slight slopes and " +
     "good house sites, and 3 hectares along the river that are completely flat with several " +
@@ -259,6 +267,7 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — within 10 minutes of Vilcabamba centre.",
   source: "https://mandangorealestate.com/property/7-4-acres-3-hectares-riverfront-property-vilcabamba/",
   sourceName: "Mandango Real Estate",
+  sourceKind: "listing",
   description:
     "3 hectares (7.4 acres) of riverfront land 10 minutes from Vilcabamba, listed with " +
     "electricity, drinking water, river access and an irrigation canal. Priced as a premium " +
@@ -301,6 +310,7 @@ window.PROPERTIES = [
   coordPrecision: "Approximate and low confidence — placed between Malacatos and Gonzanamá from the listing's travel times. 'La Cría' is a hamlet, not a mapped town.",
   source: "https://www.abecuador.com/land-for-sale-chinguilimaca",
   sourceName: "Abundant Living Ecuador",
+  sourceKind: "listing",
   description:
     "About 3.5 hectares (nearly 9 acres) in a remote, rural, warm area the agent calls " +
     "'La Cría'. Plenty of flat land, unlimited water piped in from a pure local spring, " +
@@ -337,42 +347,47 @@ window.PROPERTIES = [
 {
   id: "malacatos-productive-2ha",
   category: "match",
-  name: "Malacatos Productive Income Land — 2 ha",
+  name: "Chiquil Productive Hillside — 2 ha",
   price: 160000,
   areaHa: 2.0,
   province: "Loja",
-  nearestTown: "Malacatos",
-  lat: -4.2167, lng: -79.2500,
-  coordPrecision: "Approximate — Malacatos town centre; the parcel is stated as 15 minutes from the centre.",
-  source: "https://mls-ecuador.com/en/real-estate/properties-for-sale-rent-loja-vilcabamba",
-  sourceName: "MLS-Ecuador / Abundant Living Ecuador",
+  nearestTown: "Chiquil (30 min from Malacatos)",
+  lat: -4.2500, lng: -79.3000,
+  coordPrecision: "Approximate and low confidence — Chiquil is a small community roughly 30 minutes from Malacatos; the hamlet is not precisely mapped.",
+  source: "https://mls-ecuador.com/en/real-estate/properties-for-sale-rent-loja-vilcabamba/ll2100204",
+  sourceName: "MLS-Ecuador ref LL2100204 / Abundant Living Ecuador",
+  sourceKind: "listing",
   description:
-    "Two hectares of completely flat, productive land about 15 minutes from the centre of " +
-    "Malacatos, marketed as a producing income property rather than raw land.",
-  access: "15 minutes from Malacatos centre. Surface not stated; Malacatos sits on the paved Loja–Vilcabamba road.",
+    "Two hectares in the small community of Chiquil, about 30 minutes from Malacatos. Mostly " +
+    "flat and cultivated, nestled on a hill with wide views of the mountains around the valley. " +
+    "Fruit trees including mango, avocado and hundreds of bananas; the rest under cassava, " +
+    "white carrots and sweet potatoes. Soil described as fertile and almost stone-free. There " +
+    "is a flat spot ready to build on, and two tilapia ponds towards the upper part.",
+  access: "About 30 minutes from Malacatos. Surface not stated.",
   fourByFour: "Unknown, probably not required",
   electricity: "unknown",
   electricityNote: "Not stated.",
   water: "unknown",
-  waterNote: "Productive flat land implies irrigation, but no water right is described. Treat as unknown.",
-  house: "unknown",
-  houseNote: "Not described.",
-  plantings: "Described as productive; the specific crop is not named in the summary.",
-  forest: "No — flat cultivated land.",
-  waterFeature: "Unknown",
-  distTown: "Malacatos 15 minutes.",
+  waterNote: "Two tilapia ponds are on the land, but no irrigation right or potable supply is described.",
+  house: "no",
+  houseNote: "A flat spot ready for building is described; no existing house.",
+  plantings: "Mango, avocado, hundreds of bananas, cassava, white carrots and sweet potatoes (verified).",
+  forest: "No — cultivated hillside and flat ground.",
+  waterFeature: "Two tilapia ponds towards the upper part of the property (verified).",
+  distTown: "Malacatos approx. 30 minutes.",
   distCity: "Loja approx. 45 minutes; Catamayo airport approx. 1.25 hours.",
   surroundings:
-    "ASSUMED: the Malacatos valley floor is the most farmed and most built-up part of this " +
-    "corridor. Flat productive land there is surrounded by other flat productive land and " +
-    "the houses that work it. Attractive valley, but not private.",
-  scores: { value: 2, safety: 8, accessibility: 8, nature: 4, utilities: 7 },
+    "VERIFIED: sits on a hill in a small community 30 minutes out from Malacatos, with " +
+    "mountain views across the valley. ASSUMED: Chiquil is a scattered farming hamlet, so " +
+    "expect a handful of working neighbours rather than isolation, and no commercial or " +
+    "industrial development anywhere near.",
+  scores: { value: 2, safety: 8, accessibility: 6, nature: 6, utilities: 6 },
   scoreNotes: {
-    value: "$80,000/ha. Priced as an income asset, not as retreat land.",
-    safety: "Established, populated valley in a low-crime province.",
-    accessibility: "Close to a real town on the main paved corridor.",
-    nature: "Working farmland among neighbours. This is the least natural of the core matches.",
-    utilities: "Productive land in a serviced valley; specifics unconfirmed."
+    value: "$80,000/ha. Priced as a producing income asset, not as retreat land.",
+    safety: "Low-crime province, small farming community rather than an isolated parcel.",
+    accessibility: "Half an hour from Malacatos on an unspecified surface, then the paved corridor onward.",
+    nature: "Hillside with valley views and no development pressure, but the land itself is farmed rather than wild.",
+    utilities: "Two ponds, fertile cultivated ground and a prepared building spot; power and water rights unconfirmed."
   }
 },
 
@@ -388,6 +403,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — placed on the Loja–Malacatos road corridor between the two towns. Sector not named.",
   source: "https://www.fazwaz.com.ec/en/land-for-sale/ecuador/loja",
   sourceName: "FazWaz Ecuador (Loja land listings)",
+  sourceKind: "search",
+  sourceNote:
+    "Portal search results, not a per-property page. Look for the 5 ha parcel with views at $97,999 negotiable. Results rotate, so it may need a size or price filter.",
   description:
     "5 hectares with views advertised along the Loja–Malacatos road at $97,999, negotiable. " +
     "One of the few parcels at the top of the target size range with a published price.",
@@ -430,6 +448,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — placed near El Ramal on the Cuenca–Girón–Pasaje road, per the listing's reference point.",
   source: "https://www.plusvalia.com/venta/terrenos/azuay/santa-isabel/q-yunguilla",
   sourceName: "Plusvalía (Santa Isabel / Yunguilla)",
+  sourceKind: "search",
+  sourceNote:
+    "Portal search results, not a per-property page. Look for the 4 ha parcel with two water rights at $35,000, 10 minutes from El Ramal. Also advertised through ACBIR Azuay.",
   description:
     "4 hectares on the Cuenca–Girón–Pasaje road about 10 minutes from El Ramal: 1 hectare " +
     "of usable flat land and 3 hectares of hillside, with two water rights. Advertised at " +
@@ -472,15 +493,17 @@ window.PROPERTIES = [
   nearestTown: "Mindo",
   lat: -0.0500, lng: -78.7750,
   coordPrecision: "Approximate — Mindo town; the parcel is stated as 1.5 km from town.",
-  source: "https://casas.mitula.ec/casas/terrenos-mindo",
-  sourceName: "Mitula Ecuador (Mindo land listings)",
+  source: "https://inmovillasol.ec/inmuebles/terreno-en-mindo/",
+  sourceName: "InmovillaSol (agent Mónica Luzuriaga)",
+  sourceKind: "listing",
   description:
     "2 hectare finca 1.5 km from Mindo with 200 metres of frontage onto the Río Mindo, " +
-    "advertised with spectacular views and marketed for cabins or a small lodge.",
+    "advertised with spectacular views and marketed for cabins or a small lodge. The listing " +
+    "states basic services are present and the price is negotiable.",
   access: "1.5 km from Mindo village, which sits on a paved spur off the Calacalí–La Independencia road.",
   fourByFour: "Unknown, probably not required",
-  electricity: "unknown",
-  electricityNote: "Not stated. Grid service reaches Mindo village; a parcel 1.5 km out is likely served, but that is an assumption.",
+  electricity: "yes",
+  electricityNote: "Listing states basic services, water and electricity, are present (verified).",
   water: "yes",
   waterNote: "200 m of river frontage (verified). Potable supply not described.",
   house: "no",
@@ -517,6 +540,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Puerto Quito town centre; sector not named.",
   source: "https://casas.trovit.com.ec/finca-puerto-quito",
   sourceName: "Trovit Ecuador (Puerto Quito fincas)",
+  sourceKind: "search",
+  sourceNote:
+    "Portal search results, not a per-property page. Look for the 30,000 m2 finca with a 250 m2 four-bedroom house and river frontage.",
   description:
     "30,000 m² finca with fruit trees and a clear-water river, near the main road, with a " +
     "250 m² house of four bedrooms, three bathrooms, living and dining rooms, kitchen, " +
@@ -562,6 +588,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate and low confidence — García Moreno parish, Intag region. The parish is large and the sector is not named.",
   source: "https://casas.trovit.com.ec/terreno-otavalo",
   sourceName: "Trovit Ecuador (Otavalo / Intag listings)",
+  sourceKind: "search",
+  sourceNote:
+    "Portal search results, not a per-property page. Look for the 5 ha parcel in Garcia Moreno parish at $28,000 negotiable. A separate Garcia Moreno listing advertises 5 ha of coffee plus 5 ha of pasture, so confirm which parcel carries this price before relying on the value score.",
   description:
     "5 hectares in the Intag region, García Moreno parish, roughly three hours from Otavalo, " +
     "advertised at $28,000 negotiable. Deep in the Intag cloud-forest valleys west of " +
@@ -608,6 +637,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Saraguro town; the listing places the parcel in the wider Saraguro area.",
   source: "https://casas.mitula.ec/casas/terrenos-saraguro",
   sourceName: "Mitula Ecuador (Saraguro listings, agent OWNERS Inmobiliarios)",
+  sourceKind: "search",
+  sourceNote:
+    "Portal search results, not a per-property page. Agent shown as OWNERS Inmobiliarios Asociados. Look for 3.6 ha with 1 ha of national cacao and a spring.",
   description:
     "3.6 hectares with one hectare planted in national cacao, a water spring inside the " +
     "property boundary, additional fruit trees and easy access.",
@@ -651,6 +683,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate and low confidence — Guamayacu sector, San Miguel de Bolívar canton.",
   source: "https://www.fazwaz.com.ec/terreno-parcela-en-venta/ecuador/bolivar",
   sourceName: "FazWaz Ecuador (Bolívar land listings)",
+  sourceKind: "search",
+  sourceNote:
+    "Portal search results, not a per-property page. Look for the 3.5 ha producing finca in the Guamayacu sector.",
   description:
     "3.5 hectares in production in the Guamayacu sector of Bolívar province, subtropical " +
     "climate, growing cacao and tropical fruit.",
@@ -693,6 +728,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate and low confidence — Román Campaña parish, Recinto San Miguel, Pangua canton.",
   source: "https://www.bienesonline.ec/buscar-fincas-de-venta-en-cotopaxi.php",
   sourceName: "BienesOnLine Ecuador (Cotopaxi fincas)",
+  sourceKind: "search",
+  sourceNote:
+    "Portal search results, not a per-property page. Look for the 21,315 m2 agro-productive finca in Recinto San Miguel, Roman Campana parish.",
   description:
     "Agro-productive finca of 21,315 m² in Recinto San Miguel, Román Campaña parish, " +
     "Pangua canton, on the subtropical western slope of Cotopaxi province.",
@@ -736,6 +774,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Quinindé town centre; sector not named.",
   source: "https://casas.trovit.com.ec/finca-quininde",
   sourceName: "Trovit Ecuador (Quinindé fincas)",
+  sourceKind: "search",
+  sourceNote:
+    "Portal search results, not a per-property page. Look for 4 ha of cacao and fruit trees with two springs and a two-bedroom house.",
   description:
     "4 hectares planted with cacao and fruit trees, its own water from two springs, and a " +
     "house of two bedrooms and one full bathroom. Listed in a zone described as touristic " +
@@ -780,10 +821,14 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Pacoche / El Aromo area south-west of Manta.",
   source: "https://casas.trovit.com.ec/finca-manabi",
   sourceName: "Trovit Ecuador (Manabí fincas)",
+  sourceKind: "search",
+  sourceNote:
+    "Portal search results, not a per-property page. Look for the 4.4 ha parcel in the Pacoche humid forest at El Aromo.",
   description:
     "4.4 hectares in the humid forest of Pacoche, El Aromo, in Manta canton, advertised at " +
-    "$198,000. Pacoche is a genuine coastal cloud-forest pocket and a designated wildlife " +
-    "refuge area, unusual on Ecuador's dry coast.",
+    "$198,000 and marketed as the lungs of Manta. About 25 minutes from Manta, near Playa " +
+    "Liguiqui and Playa San Lorenzo. Pacoche is a genuine coastal cloud-forest pocket and a " +
+    "designated wildlife refuge area, unusual on Ecuador's dry coast.",
   access: "Off the coastal road south-west of Manta. Surface not stated.",
   fourByFour: "Unknown",
   electricity: "unknown",
@@ -795,7 +840,7 @@ window.PROPERTIES = [
   plantings: "Unknown",
   forest: "Humid forest, stated in the listing and consistent with the Pacoche refuge (verified).",
   waterFeature: "Unknown",
-  distTown: "Manta approx. 30–45 minutes.",
+  distTown: "Manta approx. 25 minutes (stated in listing).",
   distCity: "Manta has a national airport within roughly 45 minutes.",
   surroundings:
     "VERIFIED: the parcel is in the Pacoche humid forest belt, a protected-area landscape. " +
@@ -825,6 +870,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate and low confidence — the listing describes a 56 ha holding along the Ruta del Spondylus without naming the sector.",
   source: "https://www.viviun.com/ecuador-farms-and-land-for-sale",
   sourceName: "Viviun (Ecuador farms and land)",
+  sourceKind: "index",
+  sourceNote:
+    "Aggregator index page. Look for the 56 ha native dry forest holding sold in parcels from 3 ha.",
   description:
     "A 56 hectare block of native dry tropical forest along the Ruta del Spondylus in " +
     "Manabí, being sold in parcels from 3 hectares upward. Mostly west-facing with Pacific " +
@@ -871,6 +919,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Vilcabamba area; sector not named.",
   source: "https://realestate.instacasa.biz/50k-100k/",
   sourceName: "InstaCasa Real Estate (ref P0031)",
+  sourceKind: "index",
+  sourceNote:
+    "Agency index page. Find ref P0031 in the $50K-$100K band.",
   description:
     "1.7 hectares of mountainside with both flat and ridge building areas, described as " +
     "spectacular views and very private. Just under the 2 ha floor.",
@@ -904,6 +955,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Masanamaca sector.",
   source: "https://latincarib.com/real-estate/riverfront-land-close-vilcabamba/",
   sourceName: "LatinCarib",
+  sourceKind: "index",
+  sourceNote:
+    "Agency article listing several Vilcabamba riverfront parcels. Find the 1.5 ha Masanamaca orchard at $158,000.",
   description:
     "1.5 hectares of completely flat land bordered by the Masanamaca River, with more than " +
     "500 mature organically cultivated fruit trees, 13 minutes from Vilcabamba.",
@@ -938,6 +992,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Landangui sector.",
   source: "https://realestate.instacasa.biz/100k-to-150k/",
   sourceName: "InstaCasa Real Estate (ref P0044)",
+  sourceKind: "index",
+  sourceNote:
+    "Agency index page. Find ref P0044 in the $100K-$150K band.",
   description: "8,000 m² marketed as 'unique riverfront magic' at Landangui, 10 km from Vilcabamba.",
   access: "10 km from Vilcabamba on the Malacatos corridor.", fourByFour: "Unknown, probably not required",
   electricity: "unknown", electricityNote: "Not stated.",
@@ -969,6 +1026,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate and low confidence — 'San Torum' is not a standard mapped place name; placed 12 km from Vilcabamba per the listing.",
   source: "https://realestate.instacasa.biz/100k-to-150k/",
   sourceName: "InstaCasa Real Estate (ref P0033)",
+  sourceKind: "index",
+  sourceNote:
+    "Agency index page. Find ref P0033 in the $100K-$150K band.",
   description: "One hectare riverside parcel marketed as the 'End of the World Property', 12 km from Vilcabamba centre.",
   access: "12 km from Vilcabamba. Surface not stated.", fourByFour: "Unknown",
   electricity: "unknown", electricityNote: "Not stated.",
@@ -1000,6 +1060,7 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Yangana area, mountains above the village.",
   source: "https://mls-ecuador.com/en/real-estate/properties-for-sale-rent-loja-vilcabamba/ll2200008",
   sourceName: "MLS-Ecuador (ref LL2200008)",
+  sourceKind: "listing",
   description:
     "6 hectares in the mountains of Yangana with fruit trees, flat building areas, a clean " +
     "water stream and river frontage. Marketed explicitly for off-grid living.",
@@ -1035,6 +1096,7 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Yangana parish.",
   source: "https://mandangorealestate.com/property/property-for-sale-in-yangana-loja-6-4-hectares-15-8-acres/",
   sourceName: "Mandango Real Estate",
+  sourceKind: "listing",
   description: "6.4 hectares (15.8 acres) in Yangana parish, Loja.",
   access: "Not stated.", fourByFour: "Unknown",
   electricity: "unknown", electricityNote: "Not stated.",
@@ -1056,23 +1118,26 @@ window.PROPERTIES = [
 {
   id: "nm-quinara-634",
   category: "near",
-  name: "Quinara River Land with Micro-Hydro — 6.34 ha",
+  name: "Quinara Off-Grid Farm with Micro-Hydro — 6.34 ha",
   price: null,
   areaHa: 6.34,
   province: "Loja",
   nearestTown: "Quinara",
   lat: -4.3167, lng: -79.2333,
   coordPrecision: "Approximate — outside Quinara village.",
-  source: "https://mls-ecuador.com/en/land-listings",
-  sourceName: "MLS-Ecuador land listings",
+  source: "https://mls-ecuador.com/en/land-listings/ll1700076",
+  sourceName: "MLS-Ecuador ref LL1700076",
+  sourceKind: "listing",
   description:
-    "6.34 hectares outside Quinara with a pure river running the length of the land, no " +
-    "flood risk, pure drinking water and a functioning micro-hydro plant.",
+    "6.34 hectares outside Quinara, about 25 minutes from Vilcabamba, with a pure river " +
+    "running the length of the land and no flood risk, pure drinking water, a small rustic " +
+    "house, hundreds of mature heritage fruit trees and a working micro-hydro plant sized " +
+    "for even a large home. Listed as Neverland Farm, land the Palta once used for ritual.",
   access: "Not stated.", fourByFour: "Unknown",
   electricity: "yes", electricityNote: "Functioning micro-hydro plant on the property (verified in listing).",
   water: "yes", waterNote: "Pure drinking water and a river along the full length of the land (verified).",
-  house: "unknown", houseNote: "Not described.",
-  plantings: "Unknown",
+  house: "yes", houseNote: "Small rustic house on the land (verified in listing).",
+  plantings: "Hundreds of mature heritage fruit trees (verified).",
   forest: "Unknown",
   waterFeature: "River running the length of the property (verified).",
   distTown: "Quinara village; Vilcabamba approx. 25 minutes.",
@@ -1083,7 +1148,7 @@ window.PROPERTIES = [
     value: "No price published. Unrated.",
     safety: "Low-crime province, small rural village.",
     accessibility: "About 25 minutes from Vilcabamba; parcel road unconfirmed.",
-    nature: "A river along the entire length of the land, quiet valley.",
+    nature: "A river along the entire length of the land, a mature orchard and a quiet valley.",
     utilities: "A working micro-hydro plant plus drinking water is the best infrastructure found anywhere in this research."
   }
 },
@@ -1100,6 +1165,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Mindo tourist zone; sector not named.",
   source: "https://casas.mitula.ec/casas/terrenos-mindo",
   sourceName: "Mitula Ecuador (Mindo land listings)",
+  sourceKind: "search",
+  sourceNote:
+    "Portal search results, not a per-property page. Look for 8 ha in the Mindo tourist zone at $10,000 per hectare.",
   description: "8 hectares in the Mindo tourist zone advertised at $10,000 per hectare, $80,000 total.",
   access: "Mindo area; not further specified.", fourByFour: "Unknown",
   electricity: "unknown", electricityNote: "Not stated.",
@@ -1132,6 +1200,9 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — Nangulví, on the Río Intag.",
   source: "https://casas.trovit.com.ec/finca-imbabura",
   sourceName: "Trovit Ecuador (Imbabura fincas)",
+  sourceKind: "search",
+  sourceNote:
+    "Portal search results, not a per-property page. Look for 7.5 ha with an unfinished tourism project by the Rio Intag near Nangulvi.",
   description:
     "7.5 hectares in Intag with an unfinished tourism project, near Nangulví and its hot " +
     "springs, on the edge of the Río Intag.",
@@ -1167,6 +1238,7 @@ window.PROPERTIES = [
   coordPrecision: "Approximate — La Magdalena / Chontal sector on the Río Guayllabamba.",
   source: "https://www.buscocasita.com/vendo-finca-en-intag-cotacachi-imbabura_52041.html",
   sourceName: "BuscoCasita Ecuador",
+  sourceKind: "listing",
   description:
     "8 hectares at La Magdalena, Chontal, with two houses: 4 ha flat, 2 ha semi-flat and " +
     "2 ha of hillside carrying virgin forest. Fronts the Río Guayllabamba and is flanked " +

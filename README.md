@@ -44,6 +44,14 @@ direct page fetches, so listing detail was harvested from search-engine result c
 rather than by opening each listing page. Re-verify price and availability with the
 agent before acting on anything here.
 
+**Links vary in directness, and each one says which kind it is.** Ten properties link
+straight to their own listing page. Seven link to an agency's index of properties, where
+the entry is one row among several, so the record names the reference number to look for.
+Eleven link to a portal's search results, because that is where the property surfaced and
+no per-property URL was reachable; portal results rotate, so these may need a filter or
+may have gone entirely. The property card labels the link Listing, Agency page or Search
+page, and the detail panel spells out what to look for once you are there.
+
 **Coordinates are approximate.** No listing published exact coordinates. Every pin sits
 on the named town, valley or sector, and each record says so in its own words. Use the
 map to judge a region, never a parcel boundary.

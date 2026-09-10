@@ -17,6 +17,26 @@
   };
   var NEUTRAL = 5; // stand-in for an unrated dimension, always flagged in the UI
 
+  // How direct the source link is. Half these properties were found on portal
+  // search pages whose contents rotate, so the link type is stated up front
+  // rather than letting a link quietly fail to show the property.
+  var SOURCE_KIND = {
+    listing: {
+      label: "Listing", shortLabel: "Listing",
+      tip: "Direct link to this property's own listing page."
+    },
+    index: {
+      label: "Agency index", shortLabel: "Agency page",
+      tip: "Goes to the agency's list of properties, not a page for this one. " +
+           "The property is one entry on it."
+    },
+    search: {
+      label: "Portal search", shortLabel: "Search page",
+      tip: "Goes to a portal's search results, not a page for this property. " +
+           "Portal results change over time, so it may have moved or gone."
+    }
+  };
+
   var state = {
     weights: Object.assign({}, DEFAULT_WEIGHTS),
     filters: {
@@ -197,7 +217,9 @@
       '<div class="pline">&#128205;' + esc(p.nearestTown) + '</div>' +
       '<div class="pact">' +
         '<button data-detail="' + esc(p.id) + '">Full detail</button>' +
-        '<a href="' + esc(p.source) + '" target="_blank" rel="noopener">&#128279; Listing</a>' +
+        '<a href="' + esc(p.source) + '" target="_blank" rel="noopener" title="' +
+          esc(SOURCE_KIND[p.sourceKind].tip) + '">&#128279; ' +
+          esc(SOURCE_KIND[p.sourceKind].shortLabel) + '</a>' +
       '</div></div>';
   }
 
@@ -377,7 +399,9 @@
 
       '<div class="dsec"><h3>Listing</h3><p>' + esc(p.description) + '</p>' +
         '<a class="srcbtn" href="' + esc(p.source) + '" target="_blank" rel="noopener">&#128279; ' +
-        esc(p.sourceName) + '</a></div>' +
+        esc(SOURCE_KIND[p.sourceKind].label) + ': ' + esc(p.sourceName) + '</a>' +
+        '<div class="srcnote">' +
+          esc(p.sourceNote || SOURCE_KIND[p.sourceKind].tip) + '</div></div>' +
 
       '<div class="dsec"><h3>Key figures</h3><dl class="dl">' +
         '<dt>Asking price</dt><dd' + (p.price == null ? ' class="unk"' : "") + '>' + esc(money(p.price)) + '</dd>' +
